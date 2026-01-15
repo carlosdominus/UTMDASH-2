@@ -4,7 +4,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
   LineChart, Line
 } from 'recharts';
-import { Filter as FilterIcon, Table as TableIcon, LayoutDashboard, Search, X, ChevronDown, DollarSign, TrendingUp, Receipt, Wallet, Target, CheckCircle2, Calendar, LayoutGrid, BarChart3, List } from 'lucide-react';
+import { Filter as FilterIcon, Table as TableIcon, LayoutDashboard, Search, X, ChevronDown, DollarSign, TrendingUp, Receipt, Wallet, Target, CheckCircle2, Calendar, LayoutGrid, BarChart3, List, Layers } from 'lucide-react';
 import { DashboardData } from '../types';
 
 interface DashboardProps {
@@ -27,7 +27,7 @@ const Dashboard: React.FC<DashboardProps> = ({ data }) => {
   const [columnSearchTerms, setColumnSearchTerms] = useState<Record<string, string>>({});
   const [searchTerm, setSearchTerm] = useState('');
   const [manualInvestment, setManualInvestment] = useState<number>(0);
-  const [rowInvestments, setRowInvestments] = useState<Record<number, number>>({});
+  const [groupInvestments, setGroupInvestments] = useState<Record<string, number>>({});
   const [activeHeaderFilter, setActiveHeaderFilter] = useState<string | null>(null);
   
   // Estados de Data
@@ -131,6 +131,37 @@ const Dashboard: React.FC<DashboardProps> = ({ data }) => {
     });
   }, [rowsWithIndex, filters, searchTerm, datePreset, customStartDate, customEndDate, colData]);
 
+  // Agrupamento para UTM DASH
+  const groupedData = useMemo(() => {
+    const groups: Record<string, any> = {};
+    
+    filteredRows.forEach(row => {
+      const prod = String(row[colProduto || ''] || 'N/A');
+      const camp = String(row[colCampaign || ''] || 'N/A');
+      const term = String(row[colTerm || ''] || 'N/A');
+      const key = `${prod}|${camp}|${term}`;
+      
+      if (!groups[key]) {
+        groups[key] = {
+          key,
+          product: prod,
+          campaign: camp,
+          term: term,
+          salesCount: 0,
+          totalRevenue: 0,
+          dates: new Set<string>(),
+        };
+      }
+      
+      groups[key].salesCount += 1;
+      groups[key].totalRevenue += Number(row[colFaturamento || '']) || 0;
+      const dateOnly = String(row[colData || '']).split(' ')[0];
+      groups[key].dates.add(dateOnly);
+    });
+
+    return Object.values(groups).sort((a, b) => b.salesCount - a.salesCount);
+  }, [filteredRows, colProduto, colCampaign, colTerm, colFaturamento, colData]);
+
   const stats = useMemo(() => {
     let fat = 0;
     filteredRows.forEach(row => {
@@ -166,7 +197,6 @@ const Dashboard: React.FC<DashboardProps> = ({ data }) => {
 
   return (
     <div className="space-y-6 pb-20">
-      {/* CSS para limpar inputs numéricos */}
       <style>{`
         input::-webkit-outer-spin-button,
         input::-webkit-inner-spin-button {
@@ -181,7 +211,7 @@ const Dashboard: React.FC<DashboardProps> = ({ data }) => {
       {/* Menu Superior */}
       <div className="bg-slate-200/50 p-1.5 rounded-2xl w-full flex flex-wrap lg:flex-nowrap gap-2 sticky top-20 z-40 backdrop-blur-md shadow-sm border border-slate-200">
         <TabButton active={viewMode === 'central'} onClick={() => setViewMode('central')} label="Análise Central" icon={<LayoutGrid className="w-4 h-4 mr-2" />} />
-        <TabButton active={viewMode === 'utmdash'} onClick={() => setViewMode('utmdash')} label="UTM DASH" icon={<LayoutDashboard className="w-4 h-4 mr-2" />} />
+        <TabButton active={viewMode === 'utmdash'} onClick={() => setViewMode('utmdash')} label="UTM DASH (Agrupado)" icon={<Layers className="w-4 h-4 mr-2" />} />
         <TabButton active={viewMode === 'graphs'} onClick={() => setViewMode('graphs')} label="Análise Gráfica" icon={<BarChart3 className="w-4 h-4 mr-2" />} />
         <TabButton active={viewMode === 'database'} onClick={() => setViewMode('database')} label="Base de Dados" icon={<List className="w-4 h-4 mr-2" />} />
       </div>
@@ -262,19 +292,22 @@ const Dashboard: React.FC<DashboardProps> = ({ data }) => {
         </div>
       )}
 
-      {/* View: UTM DASH */}
+      {/* View: UTM DASH (Refatorado para Agrupamento) */}
       {viewMode === 'utmdash' && (
         <div className="bg-white rounded-[32px] border border-slate-200 shadow-xl overflow-hidden animate-in fade-in zoom-in duration-300">
-          <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
-            <h4 className="font-black text-slate-800 tracking-tighter uppercase text-sm flex items-center gap-2">
-              <LayoutDashboard className="w-4 h-4 text-indigo-600" />
-              UTM Performance ({filteredRows.length})
-            </h4>
-            <div className="text-[10px] font-black text-slate-400 uppercase flex gap-4">
-              <span className="flex items-center"><div className="w-2 h-2 rounded-full bg-emerald-500 mr-2" /> ROI {'>'} 1</span>
-              <span className="flex items-center"><div className="w-2 h-2 rounded-full bg-rose-500 mr-2" /> ROI {'<'} 1</span>
-              <button onClick={clearAllFilters} className="text-rose-500 hover:text-rose-600 ml-4 flex items-center">
-                <X className="w-3 h-3 mr-1" /> Limpar Filtros
+          <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div className="space-y-1">
+              <h4 className="font-black text-slate-800 tracking-tighter uppercase text-sm flex items-center gap-2">
+                <LayoutDashboard className="w-4 h-4 text-indigo-600" />
+                UTM Performance Agrupado ({groupedData.length} clusters)
+              </h4>
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Agrupado por Produto + Campanha + Termo</p>
+            </div>
+            <div className="text-[10px] font-black text-slate-400 uppercase flex flex-wrap gap-4">
+              <span className="flex items-center"><div className="w-2 h-2 rounded-full bg-emerald-500 mr-2" /> Lucro Positivo</span>
+              <span className="flex items-center"><div className="w-2 h-2 rounded-full bg-rose-500 mr-2" /> Prejuízo</span>
+              <button onClick={clearAllFilters} className="text-rose-500 hover:text-rose-600 ml-2 flex items-center">
+                <X className="w-3 h-3 mr-1" /> Resetar
               </button>
             </div>
           </div>
@@ -283,7 +316,7 @@ const Dashboard: React.FC<DashboardProps> = ({ data }) => {
               <thead className="sticky top-0 z-30 bg-slate-50 shadow-sm">
                 <tr className="border-b border-slate-200">
                   <HeaderCell 
-                    label="Data Venda" 
+                    label="Período" 
                     id="date"
                     active={activeHeaderFilter === 'date'}
                     onClick={() => setActiveHeaderFilter(activeHeaderFilter === 'date' ? null : 'date')}
@@ -323,8 +356,6 @@ const Dashboard: React.FC<DashboardProps> = ({ data }) => {
                     />
                   </HeaderCell>
 
-                  <th className="px-6 py-4 font-black text-slate-400 uppercase tracking-widest">Valor Venda</th>
-
                   <HeaderCell 
                     label="Campanha" 
                     id="camp"
@@ -359,27 +390,33 @@ const Dashboard: React.FC<DashboardProps> = ({ data }) => {
                     />
                   </HeaderCell>
 
-                  <th className="px-6 py-4 font-black text-indigo-600 uppercase tracking-widest bg-indigo-50/50">Investimento</th>
-                  <th className="px-6 py-4 font-black text-slate-400 uppercase tracking-widest">CPA</th>
+                  <th className="px-6 py-4 font-black text-slate-400 uppercase tracking-widest text-center">Vendas</th>
+                  <th className="px-6 py-4 font-black text-slate-400 uppercase tracking-widest">Faturamento</th>
+                  <th className="px-6 py-4 font-black text-indigo-600 uppercase tracking-widest bg-indigo-50/50">Invest. Total</th>
+                  <th className="px-6 py-4 font-black text-slate-400 uppercase tracking-widest">CPA Médio</th>
                   <th className="px-6 py-4 font-black text-slate-400 uppercase tracking-widest text-center">ROI</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {filteredRows.map((row) => {
-                  const valor = Number(row[colFaturamento || '']) || 0;
-                  const custo = rowInvestments[row._id] || 0;
-                  const imposto = valor * 0.06;
-                  const lucro = valor - custo - imposto;
-                  const roi = custo > 0 ? valor / custo : 0;
-                  const isProfitable = lucro > 0;
+                {groupedData.map((group) => {
+                  const revenue = group.totalRevenue;
+                  const invest = groupInvestments[group.key] || 0;
+                  const taxes = revenue * 0.06;
+                  const profit = revenue - invest - taxes;
+                  const roi = invest > 0 ? revenue / invest : 0;
+                  const cpa = invest > 0 ? invest / group.salesCount : 0;
+                  const isProfitable = profit > 0;
+                  const dateList = Array.from(group.dates).sort();
+                  const dateRange = dateList.length > 1 ? `${dateList[0]} > ${dateList[dateList.length - 1]}` : dateList[0];
 
                   return (
-                    <tr key={row._id} className={`transition-colors ${isProfitable ? 'bg-emerald-50/50 hover:bg-emerald-100/70' : custo > 0 ? 'bg-rose-50/50 hover:bg-rose-100/70' : 'hover:bg-slate-50'}`}>
-                      <td className="px-6 py-3 font-bold text-slate-600 whitespace-nowrap">{row[colData || '']}</td>
-                      <td className="px-6 py-3 font-bold text-slate-600 truncate max-w-[200px]">{row[colProduto || '']}</td>
-                      <td className="px-6 py-3 font-black text-slate-800">{formatBRL(valor)}</td>
-                      <td className="px-6 py-3 font-medium text-slate-500 truncate max-w-[180px]">{row[colCampaign || '']}</td>
-                      <td className="px-6 py-3 font-medium text-slate-500 truncate max-w-[150px]">{row[colTerm || '']}</td>
+                    <tr key={group.key} className={`transition-colors ${isProfitable && invest > 0 ? 'bg-emerald-50/50 hover:bg-emerald-100/70' : invest > 0 ? 'bg-rose-50/50 hover:bg-rose-100/70' : 'hover:bg-slate-50'}`}>
+                      <td className="px-6 py-3 font-bold text-slate-400 whitespace-nowrap text-[9px] uppercase tracking-tighter">{dateRange}</td>
+                      <td className="px-6 py-3 font-bold text-slate-600 truncate max-w-[150px]">{group.product}</td>
+                      <td className="px-6 py-3 font-medium text-slate-500 truncate max-w-[150px]">{group.campaign}</td>
+                      <td className="px-6 py-3 font-medium text-slate-500 truncate max-w-[120px]">{group.term}</td>
+                      <td className="px-6 py-3 font-black text-indigo-600 text-center text-lg tracking-tighter">{group.salesCount}</td>
+                      <td className="px-6 py-3 font-black text-slate-800">{formatBRL(revenue)}</td>
                       <td className="px-6 py-3 bg-indigo-50/20">
                         <div className="flex items-center bg-white border border-indigo-200 rounded-xl px-2.5 py-1.5 w-32 shadow-sm focus-within:ring-2 focus-within:ring-indigo-500 transition-all">
                           <span className="text-slate-400 mr-1.5 font-black text-[10px]">R$</span>
@@ -388,19 +425,19 @@ const Dashboard: React.FC<DashboardProps> = ({ data }) => {
                             step="0.01"
                             className="bg-transparent border-none w-full text-[11px] font-black text-slate-900 outline-none p-0"
                             placeholder="0,00"
-                            value={rowInvestments[row._id] === undefined ? '' : rowInvestments[row._id]}
+                            value={groupInvestments[group.key] === undefined ? '' : groupInvestments[group.key]}
                             onChange={(e) => {
                                 const valStr = e.target.value;
                                 const val = valStr === '' ? undefined : parseFloat(valStr);
-                                setRowInvestments(prev => ({...prev, [row._id]: val as any}));
+                                setGroupInvestments(prev => ({...prev, [group.key]: val as any}));
                             }}
                           />
                         </div>
                       </td>
-                      <td className="px-6 py-3 font-black text-slate-600">{formatBRL(custo)}</td>
+                      <td className="px-6 py-3 font-black text-slate-600">{formatBRL(cpa)}</td>
                       <td className="px-6 py-3 text-center">
-                        <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase inline-block shadow-sm ${isProfitable ? 'bg-emerald-500 text-white' : custo > 0 ? 'bg-rose-500 text-white' : 'bg-slate-200 text-slate-500'}`}>
-                          {custo === 0 ? 'Pendente' : isProfitable ? `${roi.toFixed(2)}x ROI` : 'Prejuízo'}
+                        <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase inline-block shadow-sm ${invest === 0 ? 'bg-slate-200 text-slate-500' : isProfitable ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'}`}>
+                          {invest === 0 ? 'Pendente' : `${roi.toFixed(2)}x ROI`}
                         </div>
                       </td>
                     </tr>
