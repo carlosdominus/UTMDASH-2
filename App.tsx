@@ -110,7 +110,7 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
       <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
-        <div className="max-w-full mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+        <div className="max-w-[98%] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="p-2 bg-indigo-600 rounded-lg shadow-indigo-200 shadow-lg text-white">
               <Logo />
@@ -135,12 +135,12 @@ const App: React.FC = () => {
         </div>
       </header>
 
-      <main className="max-w-full mx-auto px-2 py-6 sm:px-4 lg:px-6">
+      <main className="max-w-[98%] mx-auto px-4 py-8 sm:px-6 lg:px-8">
         {!data ? (
-          <div className="flex flex-col items-center justify-center py-24 bg-white rounded-[40px] border border-slate-200 shadow-sm mx-auto max-w-4xl">
+          <div className="flex flex-col items-center justify-center py-24 bg-white rounded-[40px] border border-slate-200 shadow-sm">
             <h2 className="text-3xl font-black mb-2 text-slate-800 tracking-tighter">utmdash & Perfect Pay</h2>
             <p className="text-slate-500 mb-10 max-w-sm text-center font-medium">Análise de ROI e Gestão de Tráfego nativa para relatórios Perfect Pay.</p>
-            <div className="w-full max-w-md space-y-4 px-6">
+            <div className="w-full max-w-md space-y-4">
               <input
                 type="text"
                 placeholder="Link CSV da Perfect Pay / Google Sheets"
@@ -168,7 +168,7 @@ const App: React.FC = () => {
         ) : (
           <div className="space-y-6">
             {insights && (
-              <div className="bg-indigo-950 rounded-[32px] p-8 text-white shadow-2xl animate-in fade-in slide-in-from-top-4 duration-500 border border-white/10 mx-auto max-w-full">
+              <div className="bg-indigo-950 rounded-[32px] p-8 text-white shadow-2xl animate-in fade-in slide-in-from-top-4 duration-500 border border-white/10">
                 <h3 className="text-xl font-black mb-4 flex items-center text-indigo-400"><BrainCircuit className="w-6 h-6 mr-2" /> ESTRATÉGIA IA</h3>
                 <div className="prose prose-invert max-w-none text-indigo-100 font-medium whitespace-pre-line">{insights}</div>
               </div>

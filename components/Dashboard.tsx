@@ -136,7 +136,6 @@ const Dashboard: React.FC<DashboardProps> = ({ data }) => {
     const groups: Record<string, any> = {};
     
     filteredRows.forEach(row => {
-      // Normalização robusta para evitar agrupamentos errôneos por espaços invisíveis
       const prod = String(row[colProduto || ''] || 'N/A').trim();
       const camp = String(row[colCampaign || ''] || 'N/A').trim();
       const term = String(row[colTerm || ''] || 'N/A').trim();
@@ -197,7 +196,7 @@ const Dashboard: React.FC<DashboardProps> = ({ data }) => {
   const formatBRL = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
   return (
-    <div className="space-y-6 pb-20 w-full">
+    <div className="space-y-6 pb-20">
       <style>{`
         input::-webkit-outer-spin-button,
         input::-webkit-inner-spin-button {
@@ -219,7 +218,7 @@ const Dashboard: React.FC<DashboardProps> = ({ data }) => {
 
       {/* View: Análise Central */}
       {viewMode === 'central' && (
-        <div className="space-y-8 animate-in fade-in duration-500 w-full">
+        <div className="space-y-8 animate-in fade-in duration-500">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             <StatCard title="Faturamento" value={formatBRL(stats.fat)} icon={<TrendingUp className="w-4 h-4" />} color="emerald" tag="Vendas" />
             <div className="bg-white p-5 rounded-[28px] border border-slate-100 shadow-sm relative group overflow-hidden ring-2 ring-transparent hover:ring-rose-100 transition-all">
@@ -253,7 +252,7 @@ const Dashboard: React.FC<DashboardProps> = ({ data }) => {
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-[32px] border border-slate-200 shadow-sm space-y-8 w-full">
+          <div className="bg-white p-6 rounded-[32px] border border-slate-200 shadow-sm space-y-8">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
               <div className="flex items-center space-x-3">
                 <div className="p-2 bg-indigo-50 text-indigo-600 rounded-xl"><FilterIcon className="w-5 h-5" /></div>
@@ -295,7 +294,7 @@ const Dashboard: React.FC<DashboardProps> = ({ data }) => {
 
       {/* View: UTM DASH (Refatorado para Agrupamento) */}
       {viewMode === 'utmdash' && (
-        <div className="bg-white rounded-[32px] border border-slate-200 shadow-xl overflow-hidden animate-in fade-in zoom-in duration-300 w-full">
+        <div className="bg-white rounded-[32px] border border-slate-200 shadow-xl overflow-hidden animate-in fade-in zoom-in duration-300">
           <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div className="space-y-1">
               <h4 className="font-black text-slate-800 tracking-tighter uppercase text-sm flex items-center gap-2">
@@ -312,19 +311,18 @@ const Dashboard: React.FC<DashboardProps> = ({ data }) => {
               </button>
             </div>
           </div>
-          <div className="overflow-x-auto max-h-[750px] scrollbar-thin">
-            <table className="w-full text-left text-[11px] border-collapse relative table-fixed">
+          <div className="overflow-x-auto max-h-[700px] scrollbar-thin">
+            <table className="w-full text-left text-[11px] border-collapse relative">
               <thead className="sticky top-0 z-30 bg-slate-50 shadow-sm">
                 <tr className="border-b border-slate-200">
                   <HeaderCell 
                     label="Período" 
                     id="date"
-                    width="120px"
                     active={activeHeaderFilter === 'date'}
                     onClick={() => setActiveHeaderFilter(activeHeaderFilter === 'date' ? null : 'date')}
                     hasFilter={datePreset !== 'all'}
                   >
-                    <div className="p-4 w-64 space-y-4 text-slate-800">
+                    <div className="p-4 w-64 space-y-4">
                       <div className="flex flex-wrap gap-2">
                         {['all', 'today', '7days', '15days', '30days', 'custom'].map(id => (
                           <button key={id} onClick={() => setDatePreset(id as DatePreset)} className={`px-2 py-1 rounded-lg text-[9px] font-black uppercase ${datePreset === id ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}>
@@ -344,7 +342,6 @@ const Dashboard: React.FC<DashboardProps> = ({ data }) => {
                   <HeaderCell 
                     label="Produto" 
                     id="prod"
-                    width="200px"
                     active={activeHeaderFilter === 'prod'}
                     onClick={() => setActiveHeaderFilter(activeHeaderFilter === 'prod' ? null : 'prod')}
                     hasFilter={filters[colProduto || '']?.length > 0}
@@ -362,7 +359,6 @@ const Dashboard: React.FC<DashboardProps> = ({ data }) => {
                   <HeaderCell 
                     label="Campanha" 
                     id="camp"
-                    width="35%"
                     active={activeHeaderFilter === 'camp'}
                     onClick={() => setActiveHeaderFilter(activeHeaderFilter === 'camp' ? null : 'camp')}
                     hasFilter={filters[colCampaign || '']?.length > 0}
@@ -380,7 +376,6 @@ const Dashboard: React.FC<DashboardProps> = ({ data }) => {
                   <HeaderCell 
                     label="UTM Term" 
                     id="term"
-                    width="25%"
                     active={activeHeaderFilter === 'term'}
                     onClick={() => setActiveHeaderFilter(activeHeaderFilter === 'term' ? null : 'term')}
                     hasFilter={filters[colTerm || '']?.length > 0}
@@ -395,11 +390,11 @@ const Dashboard: React.FC<DashboardProps> = ({ data }) => {
                     />
                   </HeaderCell>
 
-                  <th className="px-4 py-4 font-black text-slate-400 uppercase tracking-widest text-center w-24">Vendas</th>
-                  <th className="px-4 py-4 font-black text-slate-400 uppercase tracking-widest w-32">Faturamento</th>
-                  <th className="px-4 py-4 font-black text-indigo-600 uppercase tracking-widest bg-indigo-50/50 w-40">Invest. Total</th>
-                  <th className="px-4 py-4 font-black text-slate-400 uppercase tracking-widest w-32">CPA Médio</th>
-                  <th className="px-4 py-4 font-black text-slate-400 uppercase tracking-widest text-center w-28">ROI</th>
+                  <th className="px-6 py-4 font-black text-slate-400 uppercase tracking-widest text-center">Vendas</th>
+                  <th className="px-6 py-4 font-black text-slate-400 uppercase tracking-widest">Faturamento</th>
+                  <th className="px-6 py-4 font-black text-indigo-600 uppercase tracking-widest bg-indigo-50/50">Invest. Total</th>
+                  <th className="px-6 py-4 font-black text-slate-400 uppercase tracking-widest">CPA Médio</th>
+                  <th className="px-6 py-4 font-black text-slate-400 uppercase tracking-widest text-center">ROI</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -415,15 +410,15 @@ const Dashboard: React.FC<DashboardProps> = ({ data }) => {
                   const dateRange = dateList.length > 1 ? `${dateList[0]} > ${dateList[dateList.length - 1]}` : dateList[0];
 
                   return (
-                    <tr key={group.key} className={`transition-colors ${invest > 0 ? (isProfitable ? 'bg-emerald-50/40 hover:bg-emerald-100/60' : 'bg-rose-50/40 hover:bg-rose-100/60') : 'hover:bg-slate-50'}`}>
-                      <td className="px-4 py-4 font-bold text-slate-400 text-[9px] uppercase tracking-tighter align-top">{dateRange}</td>
-                      <td className="px-4 py-4 font-bold text-slate-700 whitespace-normal break-words align-top">{group.product}</td>
-                      <td className="px-4 py-4 font-medium text-slate-600 whitespace-normal break-all align-top leading-relaxed">{group.campaign}</td>
-                      <td className="px-4 py-4 font-medium text-slate-500 whitespace-normal break-all align-top leading-relaxed">{group.term}</td>
-                      <td className="px-4 py-4 font-black text-indigo-600 text-center text-lg tracking-tighter align-top">{group.salesCount}</td>
-                      <td className="px-4 py-4 font-black text-slate-800 align-top">{formatBRL(revenue)}</td>
-                      <td className="px-4 py-4 bg-indigo-50/10 align-top">
-                        <div className="flex items-center bg-white border border-indigo-200 rounded-xl px-2 py-1.5 w-full shadow-sm focus-within:ring-2 focus-within:ring-indigo-500 transition-all">
+                    <tr key={group.key} className={`transition-colors ${isProfitable && invest > 0 ? 'bg-emerald-50/50 hover:bg-emerald-100/70' : invest > 0 ? 'bg-rose-50/50 hover:bg-rose-100/70' : 'hover:bg-slate-50'}`}>
+                      <td className="px-6 py-3 font-bold text-slate-400 whitespace-nowrap text-[9px] uppercase tracking-tighter">{dateRange}</td>
+                      <td className="px-6 py-3 font-bold text-slate-600 truncate max-w-[200px]">{group.product}</td>
+                      <td className="px-6 py-3 font-medium text-slate-500 break-words max-w-[400px]">{group.campaign}</td>
+                      <td className="px-6 py-3 font-medium text-slate-500 break-words max-w-[300px]">{group.term}</td>
+                      <td className="px-6 py-3 font-black text-indigo-600 text-center text-lg tracking-tighter">{group.salesCount}</td>
+                      <td className="px-6 py-3 font-black text-slate-800">{formatBRL(revenue)}</td>
+                      <td className="px-6 py-3 bg-indigo-50/20">
+                        <div className="flex items-center bg-white border border-indigo-200 rounded-xl px-2.5 py-1.5 w-32 shadow-sm focus-within:ring-2 focus-within:ring-indigo-500 transition-all">
                           <span className="text-slate-400 mr-1.5 font-black text-[10px]">R$</span>
                           <input
                             type="number"
@@ -439,9 +434,9 @@ const Dashboard: React.FC<DashboardProps> = ({ data }) => {
                           />
                         </div>
                       </td>
-                      <td className="px-4 py-4 font-black text-slate-600 align-top">{formatBRL(cpa)}</td>
-                      <td className="px-4 py-4 text-center align-top">
-                        <div className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase inline-block shadow-sm ${invest === 0 ? 'bg-slate-200 text-slate-500' : isProfitable ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'}`}>
+                      <td className="px-6 py-3 font-black text-slate-600">{formatBRL(cpa)}</td>
+                      <td className="px-6 py-3 text-center">
+                        <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase inline-block shadow-sm ${invest === 0 ? 'bg-slate-200 text-slate-500' : isProfitable ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'}`}>
                           {invest === 0 ? 'Pendente' : `${roi.toFixed(2)}x ROI`}
                         </div>
                       </td>
@@ -456,7 +451,7 @@ const Dashboard: React.FC<DashboardProps> = ({ data }) => {
 
       {/* View: Análise Gráfica */}
       {viewMode === 'graphs' && (
-        <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500 w-full">
+        <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
           <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-wrap gap-6 items-center">
             <ChartControl label="Agrupar por:" val={chartCat} setVal={setChartCat} options={categoricalHeaders} />
             <ChartControl label="Métrica:" val={chartMet} setVal={setChartMet} options={metricHeaders} />
@@ -495,11 +490,11 @@ const Dashboard: React.FC<DashboardProps> = ({ data }) => {
 
       {/* View: Base de Dados */}
       {viewMode === 'database' && (
-        <div className="bg-white rounded-[32px] border border-slate-200 shadow-xl overflow-hidden w-full">
+        <div className="bg-white rounded-[32px] border border-slate-200 shadow-xl overflow-hidden">
           <div className="p-6 border-b border-slate-100 bg-slate-50/50">
             <h4 className="font-black text-slate-800 tracking-tighter uppercase text-sm">Registro Completo ({filteredRows.length})</h4>
           </div>
-          <div className="overflow-x-auto max-h-[750px] scrollbar-thin">
+          <div className="overflow-x-auto max-h-[700px] scrollbar-thin">
             <table className="w-full text-left text-[11px] border-collapse relative">
               <thead className="sticky top-0 z-20 bg-slate-50 shadow-sm">
                 <tr className="border-b border-slate-200">
@@ -528,7 +523,7 @@ const Dashboard: React.FC<DashboardProps> = ({ data }) => {
 };
 
 // Componentes Auxiliares
-const HeaderCell = ({ label, children, active, onClick, hasFilter, width }: any) => {
+const HeaderCell = ({ label, children, active, onClick, hasFilter }: any) => {
   const ref = useRef<HTMLTableHeaderCellElement>(null);
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -541,7 +536,7 @@ const HeaderCell = ({ label, children, active, onClick, hasFilter, width }: any)
   }, [active, onClick]);
 
   return (
-    <th ref={ref} className="px-4 py-4 relative group" style={{ width }}>
+    <th ref={ref} className="px-6 py-4 relative group">
       <button 
         onClick={onClick}
         className={`flex items-center font-black uppercase tracking-widest transition-all hover:text-indigo-600 ${hasFilter ? 'text-indigo-600 scale-105' : 'text-slate-400'}`}
@@ -550,7 +545,7 @@ const HeaderCell = ({ label, children, active, onClick, hasFilter, width }: any)
         {hasFilter ? <FilterIcon className="w-3 h-3 ml-1.5 fill-current" /> : <ChevronDown className="w-3 h-3 ml-1.5 opacity-40 group-hover:opacity-100" />}
       </button>
       {active && (
-        <div className="absolute top-full left-0 mt-2 bg-white border border-slate-200 shadow-2xl rounded-2xl z-50 animate-in fade-in zoom-in duration-150 origin-top-left min-w-[300px]">
+        <div className="absolute top-full left-0 mt-2 bg-white border border-slate-200 shadow-2xl rounded-2xl z-50 animate-in fade-in zoom-in duration-150 origin-top-left min-w-[260px]">
           {children}
         </div>
       )}
@@ -567,7 +562,7 @@ const HeaderFilterPopup = ({ col, options, filters, toggleFilter, searchTerm, on
         <input 
           type="text" 
           placeholder="Pesquisar na lista..." 
-          className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-100 rounded-xl text-[10px] font-bold outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-slate-700"
+          className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-100 rounded-xl text-[10px] font-bold outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
           onClick={(e) => e.stopPropagation()}
